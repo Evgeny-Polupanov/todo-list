@@ -29,7 +29,11 @@ const resolvers: IResolvers = {
         },
         getTodos: async (source, args, context) => {
             if (!context.isAuth || !context.userId) {
-                throw new Error('Not authenticated')
+                throw new Error('Not authenticated.')
+            }
+            const user = await User.findById(context.userId)
+            if (!user) {
+                throw new Error('User not found.')
             }
             return Todo.find({ creator: new ObjectId(context.userId) })
         },
@@ -58,6 +62,24 @@ const resolvers: IResolvers = {
             const user = new User({ email, name, password: hashedPassword })
             const savedUser = await user.save()
             return savedUser._id
+        },
+        postTodo: async (_, args, context) => {
+            if (!context.isAuth || !context.userId) {
+                throw new Error('Not authenticated.')
+            }
+            const { content } = args.todoInput
+            const user = User.findById(context.userId)
+            if (!user) {
+                throw new Error('User not found.')
+            }
+            const existingTodo = await Todo.findOne({ creator: new ObjectId(context.userId), content })
+            if (existingTodo) {
+                throw new Error('This todo is already present in your list.')
+            }
+            const todo = new Todo({ content, creator: new ObjectId(context.userId) })
+            const savedTodo = await todo.save()
+            await User.update({ _id: context.userId }, { $push: { todos: savedTodo } })
+            return savedTodo
         },
     }
 }
