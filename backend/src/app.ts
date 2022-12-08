@@ -1,8 +1,14 @@
 import express from 'express'
 import * as mongoose from 'mongoose'
-import bodyParser from 'body-parser'
+import { ApolloServer } from 'apollo-server-express'
+import { createServer } from 'http'
+import compression from 'compression'
+import schema from './schema'
 
 const app = express()
+const server = new ApolloServer({
+    schema,
+})
 
 app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Origin', '*')
@@ -13,11 +19,16 @@ app.use((req, res, next) => {
     }
     next()
 })
+app.use(compression())
+server.start()
+    .then(() => {
+        server.applyMiddleware({ app, path: '/graphql' })
+    })
 
-app.use(bodyParser.json())
+const httpServer = createServer(app)
 
 mongoose.connect('mongodb://localhost:27017/todos')
     .then(() => {
-        app.listen(8080, () => console.log('The server is running!'))
+        httpServer.listen(8080, () => console.log('The server is running!'))
     })
     .catch((error) => console.error(error))
