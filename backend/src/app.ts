@@ -4,10 +4,12 @@ import { ApolloServer } from 'apollo-server-express'
 import { createServer } from 'http'
 import compression from 'compression'
 import schema from './schema'
+import authContext from './contexts/auth'
 
 const app = express()
 const server = new ApolloServer({
     schema,
+    context: authContext,
 })
 
 app.use((req, res, next) => {

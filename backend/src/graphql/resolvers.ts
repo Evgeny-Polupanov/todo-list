@@ -4,6 +4,7 @@ import Todo from '../models/todo'
 import bcrypt from 'bcrypt'
 import validator from 'validator'
 import jwt from 'jsonwebtoken'
+import { ObjectId } from 'bson'
 
 const resolvers: IResolvers = {
     Query: {
@@ -26,8 +27,11 @@ const resolvers: IResolvers = {
             }, 'secret', { expiresIn: '1h' })
             return { token, _id: user._id }
         },
-        getTodos: () => {
-            return []
+        getTodos: async (source, args, context) => {
+            if (!context.isAuth || !context.userId) {
+                throw new Error('Not authenticated')
+            }
+            return Todo.find({ creator: new ObjectId(context.userId) })
         },
     },
     Mutation: {
