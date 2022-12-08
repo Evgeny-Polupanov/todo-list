@@ -41,6 +41,7 @@ type Query {
 type Mutation {
     signup(userInput: SignupInput): ID!
     postTodo(todoInput: TodoInput): Todo!
+    toggleTodo(todoId: ID!): Todo!
 }
 
 schema {

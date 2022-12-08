@@ -68,7 +68,7 @@ const resolvers: IResolvers = {
                 throw new Error('Not authenticated.')
             }
             const { content } = args.todoInput
-            const user = User.findById(context.userId)
+            const user = await User.findById(context.userId)
             if (!user) {
                 throw new Error('User not found.')
             }
@@ -78,10 +78,27 @@ const resolvers: IResolvers = {
             }
             const todo = new Todo({ content, creator: new ObjectId(context.userId) })
             const savedTodo = await todo.save()
-            await User.update({ _id: context.userId }, { $push: { todos: savedTodo } })
+            await User.updateOne({ _id: context.userId }, { $push: { todos: savedTodo } })
             return savedTodo
         },
-    }
+        toggleTodo: async (_, args, context) => {
+            if (!context.isAuth || !context.userId) {
+                throw new Error('Not authenticated.')
+            }
+            const { todoId } = args
+            const user = await User.findById(context.userId)
+            if (!user) {
+                throw new Error('User not found.')
+            }
+            const todoFilter = { _id: new ObjectId(todoId), creator: new ObjectId(context.userId) }
+            const todo = await Todo.findOne(todoFilter)
+            if (!todo) {
+                throw new Error('The todo is not found.')
+            }
+            await Todo.updateOne(todoFilter, { $set: { isDone: !todo.isDone } })
+            return Todo.findOne(todoFilter)
+        },
+    },
 }
 
 export default resolvers
