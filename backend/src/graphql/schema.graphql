@@ -2,7 +2,6 @@ type User {
     _id: ID!
     email: String!
     name: String!
-    password: String!
     todos: [ID!]
 }
 
@@ -43,6 +42,7 @@ type Mutation {
     postTodo(todoInput: TodoInput): Todo!
     toggleTodo(todoId: ID!): Todo!
     deleteTodo(todoId: ID!): Boolean!
+    deleteUser: Boolean!
 }
 
 schema {
