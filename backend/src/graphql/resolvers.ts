@@ -113,6 +113,22 @@ const resolvers: IResolvers = {
                 throw new Error('The todo is not found.')
             }
             await Todo.deleteOne(todoFilter)
+            await User.updateOne(
+                { _id: new ObjectId(context.userId) },
+                { $pull: { todos: new ObjectId(todoId) } }
+            )
+            return true
+        },
+        deleteUser: async (_, args, context) => {
+            if (!context.isAuth || !context.userId) {
+                throw new Error('Not authenticated.')
+            }
+            const user = await User.findById(context.userId)
+            if (!user) {
+                throw new Error('User not found.')
+            }
+            await Todo.deleteMany({ creator: new ObjectId(context.userId) })
+            await User.findByIdAndDelete(context.userId)
             return true
         },
     },
