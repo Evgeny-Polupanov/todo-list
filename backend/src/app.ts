@@ -1,8 +1,8 @@
-import express, { Express } from 'express'
+import express from 'express'
 import * as mongoose from 'mongoose'
 import bodyParser from 'body-parser'
 
-const app: Express = express()
+const app = express()
 
 app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Origin', '*')
