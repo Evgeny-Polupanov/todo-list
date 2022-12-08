@@ -6,9 +6,14 @@ type User {
     todos: [ID!]
 }
 
-input UserInput {
+input SignupInput {
     email: String!
     name: String!
+    password: String!
+}
+
+input LoginInput {
+    email: String!
     password: String!
 }
 
@@ -25,11 +30,12 @@ type UserData {
 }
 
 type Query {
+    login(userInput: LoginInput): UserData!
     getTodos: [Todo!]
 }
 
 type Mutation {
-    signup(userInput: UserInput): ID!
+    signup(userInput: SignupInput): ID!
 }
 
 schema {
