@@ -3,7 +3,7 @@ import request from 'supertest'
 import { app, httpServer } from '../app'
 import mongoose from 'mongoose'
 
-describe('Queries', () => {
+describe('Todos queries and mutations', () => {
     let supertest = request(app)
     let token: string
     let userId: string
@@ -88,6 +88,28 @@ describe('Queries', () => {
             .expect(200)
             .end((error, response) => {
                 expect(JSON.parse(response.text).data.getTodos).to.be.length(0)
+                done()
+            })
+    })
+
+    it('should add a todo and assign it to the respective user', (done) => {
+        const postTodoMutation = `
+            mutation {
+                postTodo(todoInput: { content: "test" }) {
+                    _id
+                    content
+                    creator
+                }
+            }
+        `
+        supertest.post('/graphql')
+            .send({ query: postTodoMutation })
+            .auth(token, { type: 'bearer' })
+            .expect(200)
+            .end((error, response) => {
+                expect(JSON.parse(response.text).data.postTodo._id).to.exist
+                expect(JSON.parse(response.text).data.postTodo.content).to.exist
+                expect(JSON.parse(response.text).data.postTodo.creator).to.be.equal(userId)
                 done()
             })
     })

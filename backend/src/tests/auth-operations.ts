@@ -3,7 +3,7 @@ import request from 'supertest'
 import { app, httpServer } from '../app'
 import mongoose from 'mongoose'
 
-describe('Queries', () => {
+describe('Auth queries and mutations', () => {
     let supertest = request(app)
     let token: string
     let userId: string
