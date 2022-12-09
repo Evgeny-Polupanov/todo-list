@@ -5,7 +5,7 @@
   "main": "dist/app.js",
   "scripts": {
     "start": "nodemon 'src/app.ts' --exec 'ts-node' src/app.ts -e ts,graphql",
-    "test": "mocha -r ts-node/register 'src/tests/**/*.ts' --timeout 5000",
+    "test": "mocha -r ts-node/register 'src/tests/**/*.ts' --timeout 10000",
     "build": "npx tsc ; cp src/graphql/schema.graphql dist/graphql/schema.graphql"
   },
   "author": "Evgeniy Polupanov",

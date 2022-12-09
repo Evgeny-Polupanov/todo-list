@@ -35,6 +35,7 @@ input TodoInput {
 type Query {
     login(userInput: LoginInput!): UserData!
     getTodos: [Todo!]
+    getUser: User!
 }
 
 type Mutation {

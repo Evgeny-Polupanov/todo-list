@@ -3,6 +3,12 @@ import request from 'supertest'
 import { app, httpServer } from '../app'
 import mongoose from 'mongoose'
 
+interface Todo {
+    _id: string;
+    creator: string;
+    todos: string[];
+}
+
 describe('Todos queries and mutations', () => {
     let supertest = request(app)
     let token: string
@@ -37,7 +43,7 @@ describe('Todos queries and mutations', () => {
                 supertest.post('/graphql')
                     .send({ query: signupMutation })
                     .expect(200)
-                    .end((error, result) => {
+                    .end((error) => {
                         if (error) {
                             throw new Error(error)
                         }
@@ -111,6 +117,114 @@ describe('Todos queries and mutations', () => {
                 expect(JSON.parse(response.text).data.postTodo.content).to.exist
                 expect(JSON.parse(response.text).data.postTodo.creator).to.be.equal(userId)
                 done()
+            })
+    })
+
+    it('should toggle a todo', (done) => {
+        const postTodoMutation = `
+            mutation {
+                postTodo(todoInput: { content: "toggleTest" }) {
+                    _id
+                    content
+                    isDone
+                    creator
+                }
+            }
+        `
+        const getToggleTodoMutation = (todoId: string) => `
+            mutation {
+                toggleTodo(todoId: "${todoId}") {
+                    isDone
+                    creator
+                }
+            }
+        `
+        supertest.post('/graphql')
+            .send({ query: postTodoMutation })
+            .auth(token, { type: 'bearer' })
+            .expect(200)
+            .end((error, response) => {
+                const todoId = JSON.parse(response.text).data.postTodo._id
+                const isDone = JSON.parse(response.text).data.postTodo.isDone
+                const creator = JSON.parse(response.text).data.postTodo.creator
+                supertest.post('/graphql')
+                    .send({ query: getToggleTodoMutation(todoId) })
+                    .auth(token, { type: 'bearer' })
+                    .expect(200)
+                    .end((error, response) => {
+                        expect(JSON.parse(response.text).data.toggleTodo.creator).to.be.equal(creator)
+                        expect(JSON.parse(response.text).data.toggleTodo.isDone).to.be.equal(!isDone)
+                        done()
+                    })
+            })
+    })
+
+    it('should get the todos made only by the current user', (done) => {
+        const getTodosQuery = `
+            {
+                getTodos { _id creator }
+            }
+        `
+        supertest.post('/graphql')
+            .send({ query: getTodosQuery })
+            .auth(token, { type: 'bearer' })
+            .expect(200)
+            .end((error, response) => {
+                expect(JSON.parse(response.text).data.getTodos.every((todo: Todo) => todo.creator === userId)).to.be.true
+                done()
+            })
+    })
+
+    it('should delete a todo and remove it from the user\'s todos', (done) => {
+        const postTodoMutation = `
+            mutation {
+                postTodo(todoInput: { content: "deleteTest" }) {
+                    _id
+                    content
+                    isDone
+                    creator
+                }
+            }
+        `
+        const getDeleteTodoMutation = (todoId: string) => `
+            mutation {
+                deleteTodo(todoId: "${todoId}")
+            }
+        `
+        const getUserQuery = `
+            {
+                getUser {
+                    todos
+                }
+            }
+        `
+        supertest.post('/graphql')
+            .send({ query: postTodoMutation })
+            .auth(token, { type: 'bearer' })
+            .expect(200)
+            .end((error, response) => {
+                const todoId = JSON.parse(response.text).data.postTodo._id
+                supertest.post('/graphql')
+                    .send({ query: getDeleteTodoMutation(todoId) })
+                    .auth(token, { type: 'bearer' })
+                    .expect(200)
+                    .end((error, response) => {
+                        expect(JSON.parse(response.text).data.deleteTodo).to.be.true
+                        supertest.post('/graphql')
+                            .send({ query: getUserQuery })
+                            .auth(token, { type: 'bearer' })
+                            .expect(200)
+                            .end((error, response) => {
+                                expect(
+                                    JSON.parse(response.text)
+                                        .data
+                                        .getUser
+                                        .todos
+                                        .some((existingId: string) => existingId === todoId),
+                                ).to.be.false
+                                done()
+                            })
+                    })
             })
     })
 })

@@ -80,6 +80,28 @@ describe('Auth queries and mutations', () => {
         expect(token).to.exist
     })
 
+    it('should return the current user', (done) => {
+        const getUserQuery = `
+            {
+                getUser {
+                    _id
+                    email
+                    name
+                    todos
+                }
+            }
+        `
+        supertest.post('/graphql')
+            .send({ query: getUserQuery })
+            .auth(token, { type: 'bearer' })
+            .expect(200)
+            .end((error, response) => {
+                console.log(JSON.parse(response.text).data.getUser)
+                expect(JSON.parse(response.text).data.getUser).to.exist
+                done()
+            })
+    })
+
     it('should delete user', (done) => {
         const signupMutation = `
             mutation {

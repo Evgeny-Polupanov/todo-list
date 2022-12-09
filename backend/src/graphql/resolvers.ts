@@ -37,6 +37,16 @@ const resolvers: IResolvers = {
             }
             return Todo.find({ creator: new ObjectId(context.userId) })
         },
+        getUser: async (_, args, context) => {
+            if (!context.isAuth || !context.userId) {
+                throw new Error('Not authenticated.')
+            }
+            const user = await User.findById(context.userId)
+            if (!user) {
+                throw new Error('User not found.')
+            }
+            return user
+        },
     },
     Mutation: {
         signup: async (_, args) => {
