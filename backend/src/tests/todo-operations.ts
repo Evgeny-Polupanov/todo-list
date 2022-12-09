@@ -5,8 +5,9 @@ import mongoose from 'mongoose'
 
 interface Todo {
     _id: string;
+    content: string;
+    isDone: boolean;
     creator: string;
-    todos: string[];
 }
 
 describe('Todos queries and mutations', () => {
@@ -116,6 +117,26 @@ describe('Todos queries and mutations', () => {
                 expect(JSON.parse(response.text).data.postTodo._id).to.exist
                 expect(JSON.parse(response.text).data.postTodo.content).to.exist
                 expect(JSON.parse(response.text).data.postTodo.creator).to.be.equal(userId)
+                done()
+            })
+    })
+
+    it('should throw an error when trying to add a todo content of which is already present in the user\'s todos', (done) => {
+        const postTodoMutation = `
+            mutation {
+                postTodo(todoInput: { content: "test" }) {
+                    _id
+                    content
+                    creator
+                }
+            }
+        `
+        supertest.post('/graphql')
+            .send({ query: postTodoMutation })
+            .auth(token, { type: 'bearer' })
+            .expect(200)
+            .end((error, response) => {
+                expect(JSON.parse(response.text)).to.have.property('errors')
                 done()
             })
     })

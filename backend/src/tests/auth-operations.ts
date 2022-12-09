@@ -76,6 +76,28 @@ describe('Auth queries and mutations', () => {
             })
     })
 
+    it('should throw an error when trying to sign up with a taken email', (done) => {
+        const signupMutation = `
+            mutation {
+                signup(userInput: {
+                    email: "test@test.com"
+                    name: "Test"
+                    password: "testtest"
+                })
+            }
+        `
+        supertest.post('/graphql')
+            .send({ query: signupMutation })
+            .expect(200)
+            .end((error, result) => {
+                if (error) {
+                    throw new Error(error)
+                }
+                expect(JSON.parse(result.text)).to.have.property('errors')
+                done()
+            })
+    })
+
     it('should return a token on login', () => {
         expect(token).to.exist
     })
@@ -96,7 +118,6 @@ describe('Auth queries and mutations', () => {
             .auth(token, { type: 'bearer' })
             .expect(200)
             .end((error, response) => {
-                console.log(JSON.parse(response.text).data.getUser)
                 expect(JSON.parse(response.text).data.getUser).to.exist
                 done()
             })
