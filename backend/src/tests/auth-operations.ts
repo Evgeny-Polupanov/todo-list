@@ -111,7 +111,7 @@ describe('Queries', () => {
         supertest.post('/graphql')
             .send({ query: signupMutation })
             .expect(200)
-            .end((error, result) => {
+            .end((error) => {
                 if (error) {
                     throw new Error(error)
                 }
@@ -136,6 +136,21 @@ describe('Queries', () => {
                                 done()
                             })
                     })
+            })
+    })
+
+    it('should throw an error if the user in not authenticated', (done) => {
+        const getTodosQuery = `
+            {
+                getTodos { _id }
+            }
+        `
+        supertest.post('/graphql')
+            .send({ query: getTodosQuery })
+            .expect(200)
+            .end((error, response) => {
+                expect(JSON.parse(response.text)).to.have.property('errors')
+                done()
             })
     })
 })
