@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken'
-import { ContextFunction } from 'apollo-server-core'
+import { ExpressContext } from 'apollo-server-express'
 
-const auth: ContextFunction = async ({ req }) => {
+const auth = async ({ req }: ExpressContext) => {
     const authHeader = req.get('Authorization')
     if (!authHeader) {
         return { isAuth: false, userId: '' }

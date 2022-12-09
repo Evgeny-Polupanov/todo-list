@@ -6,7 +6,7 @@ import compression from 'compression'
 import schema from './schema'
 import authContext from './contexts/auth'
 
-const app = express()
+export const app = express()
 const server = new ApolloServer({
     schema,
     context: authContext,
@@ -27,7 +27,7 @@ server.start()
         server.applyMiddleware({ app, path: '/graphql' })
     })
 
-const httpServer = createServer(app)
+export const httpServer = createServer(app)
 
 mongoose.connect('mongodb://localhost:27017/todos')
     .then(() => {

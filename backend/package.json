@@ -5,10 +5,10 @@
   "main": "dist/app.js",
   "scripts": {
     "start": "nodemon 'src/app.ts' --exec 'ts-node' src/app.ts -e ts,graphql",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "mocha -r ts-node/register 'src/tests/**/*.ts' --timeout 5000",
     "build": "npx tsc ; cp src/graphql/schema.graphql dist/graphql/schema.graphql"
   },
-  "author": "",
+  "author": "Evgeniy Polupanov",
   "license": "ISC",
   "dependencies": {
     "apollo-server-express": "^3.11.1",
@@ -25,13 +25,19 @@
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.0",
+    "@types/chai": "^4.3.4",
     "@types/compression": "^1.7.2",
     "@types/express": "^4.17.14",
     "@types/graphql": "^14.5.0",
     "@types/jsonwebtoken": "^8.5.9",
+    "@types/mocha": "^10.0.1",
     "@types/node": "^18.11.11",
+    "@types/supertest": "^2.0.12",
     "@types/validator": "^13.7.10",
+    "chai": "^4.3.7",
+    "mocha": "^10.1.0",
     "nodemon": "^2.0.20",
+    "supertest": "^6.3.3",
     "ts-node": "^10.9.1",
     "typescript": "^4.9.3"
   }
