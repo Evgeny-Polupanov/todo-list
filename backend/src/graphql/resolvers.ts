@@ -1,4 +1,4 @@
-import { IResolvers } from '@graphql-tools/utils'
+import { Resolvers } from '../generated/graphql'
 import User from '../models/user'
 import Todo from '../models/todo'
 import bcrypt from 'bcrypt'
@@ -6,7 +6,7 @@ import validator from 'validator'
 import jwt from 'jsonwebtoken'
 import { ObjectId } from 'bson'
 
-const resolvers: IResolvers = {
+const resolvers: Resolvers = {
     Query: {
         login: async (_, args) => {
             const { email, password } = args.userInput
@@ -25,7 +25,7 @@ const resolvers: IResolvers = {
                 id: user._id.toString(),
                 email: user.email,
             }, 'secret', { expiresIn: '1h' })
-            return { token, _id: user._id }
+            return { token, _id: user._id.toString() }
         },
         getTodos: async (source, args, context) => {
             if (!context.isAuth || !context.userId) {
@@ -35,7 +35,13 @@ const resolvers: IResolvers = {
             if (!user) {
                 throw new Error('User not found.')
             }
-            return Todo.find({ creator: new ObjectId(context.userId) })
+            const todos = await Todo.find({ creator: new ObjectId(context.userId) })
+            return todos.map(({ _id, content, isDone, creator }) => ({
+                _id: _id.toString(),
+                content,
+                isDone,
+                creator: creator!.toString(),
+            }))
         },
         getUser: async (_, args, context) => {
             if (!context.isAuth || !context.userId) {
@@ -45,7 +51,12 @@ const resolvers: IResolvers = {
             if (!user) {
                 throw new Error('User not found.')
             }
-            return user
+            return {
+                _id: user._id.toString(),
+                email: user.email,
+                name: user.name,
+                todos: user.todos.map((todo) => todo.toString()),
+            }
         },
     },
     Mutation: {
@@ -71,7 +82,7 @@ const resolvers: IResolvers = {
             const hashedPassword = await bcrypt.hash(password, 12)
             const user = new User({ email, name, password: hashedPassword })
             const savedUser = await user.save()
-            return savedUser._id
+            return savedUser._id.toString()
         },
         postTodo: async (_, args, context) => {
             if (!context.isAuth || !context.userId) {
@@ -88,15 +99,20 @@ const resolvers: IResolvers = {
             }
             const todo = new Todo({ content, creator: new ObjectId(context.userId) })
             const savedTodo = await todo.save()
-            await User.updateOne({ _id: context.userId }, { $push: { todos: savedTodo } })
-            return savedTodo
+            await User.updateOne({ _id: new ObjectId(context.userId) }, { $push: { todos: savedTodo } })
+            return {
+                _id: savedTodo._id.toString(),
+                content: savedTodo.content,
+                isDone: savedTodo.isDone,
+                creator: user._id.toString(),
+            }
         },
         toggleTodo: async (_, args, context) => {
             if (!context.isAuth || !context.userId) {
                 throw new Error('Not authenticated.')
             }
             const { todoId } = args
-            const user = await User.findById(context.userId)
+            const user = await User.findById(new ObjectId(context.userId))
             if (!user) {
                 throw new Error('User not found.')
             }
@@ -106,7 +122,12 @@ const resolvers: IResolvers = {
                 throw new Error('The todo is not found.')
             }
             await Todo.updateOne(todoFilter, { $set: { isDone: !todo.isDone } })
-            return Todo.findOne(todoFilter)
+            return {
+                _id: todo._id.toString(),
+                content: todo.content,
+                isDone: !todo.isDone,
+                creator: user._id.toString(),
+            }
         },
         deleteTodo: async (_, args, context) => {
             if (!context.isAuth || !context.userId) {
@@ -125,7 +146,7 @@ const resolvers: IResolvers = {
             await Todo.deleteOne(todoFilter)
             await User.updateOne(
                 { _id: new ObjectId(context.userId) },
-                { $pull: { todos: new ObjectId(todoId) } }
+                { $pull: { todos: new ObjectId(todoId) } },
             )
             return true
         },

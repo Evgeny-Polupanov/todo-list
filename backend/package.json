@@ -6,7 +6,8 @@
   "scripts": {
     "start": "nodemon 'src/app.ts' --exec 'ts-node' src/app.ts -e ts,graphql",
     "test": "mocha -r ts-node/register 'src/tests/**/*.ts' --timeout 10000",
-    "build": "npx tsc ; cp src/graphql/schema.graphql dist/graphql/schema.graphql"
+    "build": "npx tsc ; cp src/graphql/schema.graphql dist/graphql/schema.graphql",
+    "codegen": "graphql-codegen --config codegen.ts"
   },
   "author": "Evgeniy Polupanov",
   "license": "ISC",
@@ -24,6 +25,9 @@
     "validator": "^13.7.0"
   },
   "devDependencies": {
+    "@graphql-codegen/cli": "2.16.1",
+    "@graphql-codegen/typescript": "2.8.5",
+    "@graphql-codegen/typescript-resolvers": "2.7.10",
     "@types/bcrypt": "^5.0.0",
     "@types/chai": "^4.3.4",
     "@types/compression": "^1.7.2",
@@ -39,6 +43,8 @@
     "nodemon": "^2.0.20",
     "supertest": "^6.3.3",
     "ts-node": "^10.9.1",
-    "typescript": "^4.9.3"
+    "typescript": "^4.9.3",
+    "@graphql-codegen/typescript-document-nodes": "2.3.10",
+    "@graphql-codegen/typescript-mongodb": "2.4.6"
   }
 }
