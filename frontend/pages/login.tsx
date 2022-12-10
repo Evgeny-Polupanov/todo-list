@@ -2,14 +2,33 @@ import Head from 'next/head'
 import styles from '../styles/Home.module.scss'
 import { Box, Button, Tab, Tabs, TextField, Typography } from '@mui/material'
 import { useState } from 'react'
+import { SubmitHandler, useForm } from 'react-hook-form'
 
 enum Mode {
     Signin,
     Signup,
 }
 
+interface Signin {
+    email: string;
+    password: string;
+}
+
+interface Signup {
+    email: string;
+    name: string;
+    password: string;
+    passwordConfirm: string;
+}
+
 export default function Home() {
     const [mode, setMode] = useState(Mode.Signin)
+
+    const { register: registerSignin, handleSubmit: handleSignin } = useForm<Signin>()
+    const submitSignin: SubmitHandler<Signin> = (data) => console.log(data)
+
+    const { register: registerSignup, handleSubmit: handleSignup } = useForm<Signup>()
+    const submitSignup: SubmitHandler<Signup> = (data) => console.log(data)
 
     return (
         <div className={styles.container}>
@@ -40,7 +59,7 @@ export default function Home() {
                         </Tabs>
                     </Box>
                     {mode === Mode.Signin && (
-                        <>
+                        <form onSubmit={handleSignin(submitSignin)}>
                             <TextField
                                 type="email"
                                 variant="outlined"
@@ -50,6 +69,7 @@ export default function Home() {
                                 autoFocus
                                 required
                                 label="Email"
+                                inputProps={{ ...registerSignin('email') }}
                             />
                             <TextField
                                 type="password"
@@ -59,12 +79,13 @@ export default function Home() {
                                 sx={{ marginBottom: 3 }}
                                 required
                                 label="Password"
+                                inputProps={{ ...registerSignin('password') }}
                             />
-                            <Button variant="contained" fullWidth>Sign in</Button>
-                        </>
+                            <Button variant="contained" type="submit" fullWidth>Sign in</Button>
+                        </form>
                     )}
                     {mode === Mode.Signup && (
-                        <>
+                        <form onSubmit={handleSignup(submitSignup)}>
                             <TextField
                                 type="email"
                                 variant="outlined"
@@ -73,6 +94,8 @@ export default function Home() {
                                 sx={{ marginBottom: 3 }}
                                 autoFocus
                                 required
+                                label="Email"
+                                inputProps={{ ...registerSignup('email') }}
                             />
                             <TextField
                                 variant="outlined"
@@ -80,6 +103,8 @@ export default function Home() {
                                 placeholder="Enter your name"
                                 sx={{ marginBottom: 3 }}
                                 required
+                                label="Name"
+                                inputProps={{ ...registerSignup('name') }}
                             />
                             <TextField
                                 type="password"
@@ -88,9 +113,21 @@ export default function Home() {
                                 placeholder="Enter your password"
                                 sx={{ marginBottom: 3 }}
                                 required
+                                label="Password"
+                                inputProps={{ ...registerSignup('password') }}
                             />
-                            <Button variant="contained" fullWidth>Sign up</Button>
-                        </>
+                            <TextField
+                                type="password"
+                                variant="outlined"
+                                fullWidth
+                                placeholder="Repeat your password"
+                                sx={{ marginBottom: 3 }}
+                                required
+                                label="Password confirm"
+                                inputProps={{ ...registerSignup('passwordConfirm') }}
+                            />
+                            <Button variant="contained" type="submit" fullWidth>Sign up</Button>
+                        </form>
                     )}
                 </Box>
             </main>
