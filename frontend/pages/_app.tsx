@@ -1,12 +1,16 @@
-import '../styles/globals.css'
+import '../styles/globals.scss'
 import type { AppProps } from 'next/app'
 import { ApolloProvider } from '@apollo/client'
 import client from '../apollo-client'
+import { ThemeProvider } from '@mui/system'
+import { theme } from '../theme'
 
 export default function App({ Component, pageProps }: AppProps) {
     return (
         <ApolloProvider client={client}>
-            <Component {...pageProps} />
+            <ThemeProvider theme={theme}>
+                <Component {...pageProps} />
+            </ThemeProvider>
         </ApolloProvider>
     )
 }
