@@ -6,6 +6,7 @@ import { ThemeProvider } from '@mui/system'
 import { theme } from '../theme'
 import { useRouter } from 'next/router'
 import { useEffect } from 'react'
+import { SnackbarProvider } from 'notistack'
 
 export default function App({ Component, pageProps }: AppProps) {
     const router = useRouter()
@@ -19,7 +20,9 @@ export default function App({ Component, pageProps }: AppProps) {
     return (
         <ApolloProvider client={client}>
             <ThemeProvider theme={theme}>
-                <Component {...pageProps} />
+                <SnackbarProvider>
+                    <Component {...pageProps} />
+                </SnackbarProvider>
             </ThemeProvider>
         </ApolloProvider>
     )

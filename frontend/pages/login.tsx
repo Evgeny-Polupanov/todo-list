@@ -1,6 +1,6 @@
 import Head from 'next/head'
 import styles from '../styles/Home.module.scss'
-import { Alert, Box, Button, Snackbar, Tab, Tabs, TextField, Typography } from '@mui/material'
+import { Box, Button, Tab, Tabs, TextField, Typography } from '@mui/material'
 import { useEffect, useRef, useState } from 'react'
 import { SubmitHandler, useForm } from 'react-hook-form'
 import { useLazyQuery, useMutation } from '@apollo/client'
@@ -8,6 +8,7 @@ import { SignupDocument, LoginDocument } from '../src/gql/graphql'
 import { useRouter } from 'next/router'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
+import { useSnackbar } from 'notistack'
 
 enum Mode {
     Signin,
@@ -39,6 +40,7 @@ const signupSchema = yup.object({
 export default function Login() {
     const [mode, setMode] = useState(Mode.Signin)
     const router = useRouter()
+    const { enqueueSnackbar } = useSnackbar()
 
     const emailInputRef = useRef<HTMLInputElement>(null)
     useEffect(() => {
@@ -64,12 +66,18 @@ export default function Login() {
             .then((response) => {
                 const token = response.data?.login.token
                 if (token) {
+                    enqueueSnackbar('You\'ve successfully logged in.', { variant: 'success' })
                     localStorage.setItem('jwt-token', `Bearer ${token}`)
                     return router.push('/')
                 }
             })
             .catch((error) => console.error(error))
     }
+    useEffect(() => {
+        if (signinError?.message) {
+            enqueueSnackbar(signinError.message, { variant: 'error' })
+        }
+    }, [signinError])
 
     const [signup, { loading: isSignupLoading, error: signupError }] = useMutation(SignupDocument)
     const {
@@ -91,11 +99,23 @@ export default function Login() {
             },
         })
             .then(() => {
+                enqueueSnackbar('You\'ve successfully signed up. Now log in.', { variant: 'success' })
                 resetSignupForm()
                 setMode(Mode.Signin)
             })
             .catch((error) => console.error(error))
     }
+    useEffect(() => {
+        const validationErrors = Object.values(signupValidationErrors)
+        if (validationErrors.length > 0) {
+            validationErrors.forEach((error) => {
+                enqueueSnackbar(error.message, { variant: 'error' })
+            })
+        }
+        if (signupError?.message) {
+            enqueueSnackbar(signupError.message, { variant: 'error' })
+        }
+    }, [signupValidationErrors, signupError])
 
     return (
         <div className={styles.container}>
@@ -226,18 +246,6 @@ export default function Login() {
                         </form>
                     )}
                 </Box>
-                <Snackbar
-                    open={!!signinError?.message}
-                    autoHideDuration={6000}
-                >
-                    <Alert variant="outlined" severity="error">{signinError?.message}</Alert>
-                </Snackbar>
-                <Snackbar
-                    open={!!signupError?.message}
-                    autoHideDuration={6000}
-                >
-                    <Alert variant="outlined" severity="error">{signupError?.message}</Alert>
-                </Snackbar>
             </main>
         </div>
     )
