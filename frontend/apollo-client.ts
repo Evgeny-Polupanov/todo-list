@@ -18,7 +18,10 @@ const authLink = setContext((_, { headers }) => {
 
 const errorLink = onError(({ graphQLErrors }) => {
     if (graphQLErrors) {
-        if (graphQLErrors.some((error) => error.extensions?.code === 401)) {
+        if (
+            graphQLErrors.some((error) => error.extensions?.code === 401)
+            && !location.href.endsWith('/login')
+        ) {
             location.href = '/login'
         }
     }
