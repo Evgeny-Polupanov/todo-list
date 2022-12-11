@@ -67,7 +67,7 @@ export default function Login() {
                 const token = response.data?.login.token
                 if (token) {
                     enqueueSnackbar('You\'ve successfully logged in.', { variant: 'success' })
-                    localStorage.setItem('jwt-token', `Bearer ${token}`)
+                    localStorage.setItem('jwt-token', token)
                     return router.push('/')
                 }
             })
