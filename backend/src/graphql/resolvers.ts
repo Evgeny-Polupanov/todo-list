@@ -5,13 +5,16 @@ import bcrypt from 'bcrypt'
 import validator from 'validator'
 import jwt from 'jsonwebtoken'
 import { ObjectId } from 'bson'
+import { GraphQLError } from 'graphql'
 
 const resolvers: Resolvers = {
     Query: {
         login: async (_, args) => {
             const { email, password } = args.userInput
 
-            const error = new Error('Invalid credentials.')
+            const error = new GraphQLError('Invalid credentials.', {
+                extensions: { code: 401 },
+            })
 
             const user = await User.findOne({ email })
             if (!user) {
@@ -29,11 +32,17 @@ const resolvers: Resolvers = {
         },
         getTodos: async (source, args, context) => {
             if (!context.isAuth || !context.userId) {
-                throw new Error('Not authenticated.')
+                throw new GraphQLError('Not authenticated.', {
+                    extensions: {
+                        code: 401,
+                    }
+                })
             }
             const user = await User.findById(context.userId)
             if (!user) {
-                throw new Error('User not found.')
+                throw new GraphQLError('User not found.', {
+                    extensions: { code: 404 },
+                })
             }
             const todos = await Todo.find({ creator: new ObjectId(context.userId) })
             return todos.map(({ _id, content, isDone, creator }) => ({
@@ -45,11 +54,17 @@ const resolvers: Resolvers = {
         },
         getUser: async (_, args, context) => {
             if (!context.isAuth || !context.userId) {
-                throw new Error('Not authenticated.')
+                throw new GraphQLError('Not authenticated.', {
+                    extensions: {
+                        code: 401,
+                    }
+                })
             }
             const user = await User.findById(context.userId)
             if (!user) {
-                throw new Error('User not found.')
+                throw new GraphQLError('User not found.', {
+                    extensions: { code: 404 },
+                })
             }
             return {
                 _id: user._id.toString(),
@@ -63,21 +78,29 @@ const resolvers: Resolvers = {
         signup: async (_, args) => {
             const { email, name, password } = args.userInput
             if (!validator.isEmail(email)) {
-                throw new Error('The email is not valid.')
+                throw new GraphQLError('The email is not valid.', {
+                    extensions: { code: 400 },
+                })
             }
             if (validator.isEmpty(name)) {
-                throw new Error('The name should not be empty.')
+                throw new GraphQLError('The name should not be empty.', {
+                    extensions: { code: 400 },
+                })
             }
             if (
                 !validator.isAlphanumeric(password) ||
                 validator.isEmpty(password) ||
                 !validator.isLength(password, { min: 6 })
             ) {
-                throw new Error('The password is invalid.')
+                throw new GraphQLError('The password is invalid.', {
+                    extensions: { code: 400 },
+                })
             }
             const existingUser = await User.findOne({ email })
             if (existingUser) {
-                throw new Error('This email is already taken.')
+                throw new GraphQLError('This email is already taken.', {
+                    extensions: { code: 409 },
+                })
             }
             const hashedPassword = await bcrypt.hash(password, 12)
             const user = new User({ email, name, password: hashedPassword })
@@ -86,16 +109,24 @@ const resolvers: Resolvers = {
         },
         postTodo: async (_, args, context) => {
             if (!context.isAuth || !context.userId) {
-                throw new Error('Not authenticated.')
+                throw new GraphQLError('Not authenticated.', {
+                    extensions: {
+                        code: 401,
+                    }
+                })
             }
             const { content } = args.todoInput
             const user = await User.findById(context.userId)
             if (!user) {
-                throw new Error('User not found.')
+                throw new GraphQLError('User not found.', {
+                    extensions: { code: 404 },
+                })
             }
             const existingTodo = await Todo.findOne({ creator: new ObjectId(context.userId), content })
             if (existingTodo) {
-                throw new Error('This todo is already present in your list.')
+                throw new GraphQLError('This todo is already present in your list.', {
+                    extensions: { code: 409 },
+                })
             }
             const todo = new Todo({ content, creator: new ObjectId(context.userId) })
             const savedTodo = await todo.save()
@@ -109,17 +140,25 @@ const resolvers: Resolvers = {
         },
         toggleTodo: async (_, args, context) => {
             if (!context.isAuth || !context.userId) {
-                throw new Error('Not authenticated.')
+                throw new GraphQLError('Not authenticated.', {
+                    extensions: {
+                        code: 401,
+                    }
+                })
             }
             const { todoId } = args
             const user = await User.findById(new ObjectId(context.userId))
             if (!user) {
-                throw new Error('User not found.')
+                throw new GraphQLError('User not found.', {
+                    extensions: { code: 404 },
+                })
             }
             const todoFilter = { _id: new ObjectId(todoId), creator: new ObjectId(context.userId) }
             const todo = await Todo.findOne(todoFilter)
             if (!todo) {
-                throw new Error('The todo is not found.')
+                throw new GraphQLError('The todo is not found.', {
+                    extensions: { code: 404 },
+                })
             }
             await Todo.updateOne(todoFilter, { $set: { isDone: !todo.isDone } })
             return {
@@ -131,17 +170,25 @@ const resolvers: Resolvers = {
         },
         deleteTodo: async (_, args, context) => {
             if (!context.isAuth || !context.userId) {
-                throw new Error('Not authenticated.')
+                throw new GraphQLError('Not authenticated.', {
+                    extensions: {
+                        code: 401,
+                    }
+                })
             }
             const { todoId } = args
             const user = await User.findById(context.userId)
             if (!user) {
-                throw new Error('User not found.')
+                throw new GraphQLError('User not found.', {
+                    extensions: { code: 404 },
+                })
             }
             const todoFilter = { _id: new ObjectId(todoId), creator: new ObjectId(context.userId) }
             const todo = await Todo.findOne(todoFilter)
             if (!todo) {
-                throw new Error('The todo is not found.')
+                throw new GraphQLError('The todo is not found.', {
+                    extensions: { code: 404 },
+                })
             }
             await Todo.deleteOne(todoFilter)
             await User.updateOne(
@@ -152,11 +199,17 @@ const resolvers: Resolvers = {
         },
         deleteUser: async (_, args, context) => {
             if (!context.isAuth || !context.userId) {
-                throw new Error('Not authenticated.')
+                throw new GraphQLError('Not authenticated.', {
+                    extensions: {
+                        code: 401,
+                    }
+                })
             }
             const user = await User.findById(context.userId)
             if (!user) {
-                throw new Error('User not found.')
+                throw new GraphQLError('User not found.', {
+                    extensions: { code: 404 },
+                })
             }
             await Todo.deleteMany({ creator: new ObjectId(context.userId) })
             await User.findByIdAndDelete(context.userId)
