@@ -2,7 +2,7 @@ type User {
     _id: ID!
     email: String!
     name: String!
-    todos: [ID!]
+    todos: [ID!]!
 }
 
 type UserData {
@@ -34,7 +34,7 @@ input TodoInput {
 
 type Query {
     login(userInput: LoginInput!): UserData!
-    getTodos: [Todo!]
+    getTodos: [Todo!]!
     getUser: User!
 }
 

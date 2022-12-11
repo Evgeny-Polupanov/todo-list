@@ -11,4 +11,10 @@ gql`
             token
         }
     }
+    
+    query getUserForHome {
+        getUser {
+            name
+        }
+    }
 `

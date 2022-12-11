@@ -51,7 +51,7 @@ export type MutationToggleTodoArgs = {
 
 export type Query = {
   __typename?: 'Query';
-  getTodos?: Maybe<Array<Todo>>;
+  getTodos: Array<Todo>;
   getUser: User;
   login: UserData;
 };
@@ -84,7 +84,7 @@ export type User = {
   _id: Scalars['ID'];
   email: Scalars['String'];
   name: Scalars['String'];
-  todos?: Maybe<Array<Scalars['ID']>>;
+  todos: Array<Scalars['ID']>;
 };
 
 export type UserData = {
@@ -253,7 +253,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
 };
 
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
-  getTodos?: Resolver<Maybe<Array<ResolversTypes['Todo']>>, ParentType, ContextType>;
+  getTodos?: Resolver<Array<ResolversTypes['Todo']>, ParentType, ContextType>;
   getUser?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
   login?: Resolver<ResolversTypes['UserData'], ParentType, ContextType, RequireFields<QueryLoginArgs, 'userInput'>>;
 };
@@ -270,7 +270,7 @@ export type UserResolvers<ContextType = any, ParentType extends ResolversParentT
   _id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   email?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  todos?: Resolver<Maybe<Array<ResolversTypes['ID']>>, ParentType, ContextType>;
+  todos?: Resolver<Array<ResolversTypes['ID']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 

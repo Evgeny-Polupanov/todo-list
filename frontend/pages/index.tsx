@@ -1,8 +1,14 @@
 import Head from 'next/head'
 import styles from '../styles/Home.module.scss'
-import { Typography } from '@mui/material'
+import { Box, Typography } from '@mui/material'
+import { GetTodosDocument, GetUserForHomeDocument, Todo } from '../src/gql/graphql'
+import { useEffect } from 'react'
+import { useQuery } from '@apollo/client'
 
-export default function Home() {
+const Home = () => {
+    const { data: todosData, refetch } = useQuery(GetTodosDocument)
+    const { data: userData } = useQuery(GetUserForHomeDocument)
+
     return (
         <div className={styles.container}>
             <Head>
@@ -11,8 +17,16 @@ export default function Home() {
                 <link rel="icon" href="/favicon.ico" />
             </Head>
             <main className={styles.main}>
-                <Typography variant="h2" gutterBottom>Welcome</Typography>
+                <Typography variant="h2" gutterBottom>Welcome, {userData?.getUser.name}!</Typography>
+                {/*<Typography variant="subtitle1" gutterBottom>Here's the list of your todos:</Typography>*/}
+                {/*<Box>*/}
+                {/*    {todosData?.getTodos.map((todo) => (*/}
+                {/*        <Typography variant="subtitle1">{todo.content}</Typography>*/}
+                {/*    ))}*/}
+                {/*</Box>*/}
             </main>
         </div>
     )
 }
+
+export default Home
