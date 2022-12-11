@@ -32,8 +32,8 @@ interface Signup {
 const signupSchema = yup.object({
     email: yup.string().required(),
     name: yup.string().required(),
-    password: yup.string().required(),
-    passwordConfirm: yup.string().oneOf([yup.ref('password')]).required(),
+    password: yup.string().min(6).required(),
+    passwordConfirm: yup.string().oneOf([yup.ref('password')], 'Passwords don\'t match.').required(),
 }).required()
 
 export default function Login() {
@@ -46,7 +46,10 @@ export default function Login() {
     }, [])
 
     const [signin, { loading: isSigninLoading, error: signinError }] = useLazyQuery(LoginDocument)
-    const { register: registerSignin, handleSubmit: handleSignin } = useForm<Signin>({
+    const {
+        register: registerSignin,
+        handleSubmit: handleSignin,
+    } = useForm<Signin>({
         resolver: yupResolver(signinSchema),
     })
     const submitSignin: SubmitHandler<Signin> = (data) => {
@@ -65,10 +68,16 @@ export default function Login() {
                     return router.push('/')
                 }
             })
+            .catch((error) => console.error(error))
     }
 
     const [signup, { loading: isSignupLoading, error: signupError }] = useMutation(SignupDocument)
-    const { register: registerSignup, handleSubmit: handleSignup } = useForm<Signup>({
+    const {
+        register: registerSignup,
+        handleSubmit: handleSignup,
+        formState: { errors: signupValidationErrors },
+        reset: resetSignupForm,
+    } = useForm<Signup>({
         resolver: yupResolver(signupSchema),
     })
     const submitSignup: SubmitHandler<Signup> = (data) => {
@@ -82,6 +91,7 @@ export default function Login() {
             },
         })
             .then(() => {
+                resetSignupForm()
                 setMode(Mode.Signin)
             })
             .catch((error) => console.error(error))
@@ -164,6 +174,8 @@ export default function Login() {
                                 label="Email"
                                 inputProps={{ ...registerSignup('email') }}
                                 disabled={isSignupLoading}
+                                error={!!signupValidationErrors.email?.message}
+                                aria-errormessage={signupValidationErrors.email?.message}
                             />
                             <TextField
                                 variant="outlined"
@@ -174,6 +186,8 @@ export default function Login() {
                                 label="Name"
                                 inputProps={{ ...registerSignup('name') }}
                                 disabled={isSignupLoading}
+                                error={!!signupValidationErrors.name?.message}
+                                aria-errormessage={signupValidationErrors.name?.message}
                             />
                             <TextField
                                 type="password"
@@ -185,6 +199,8 @@ export default function Login() {
                                 label="Password"
                                 inputProps={{ ...registerSignup('password') }}
                                 disabled={isSignupLoading}
+                                error={!!signupValidationErrors.password?.message}
+                                aria-errormessage={signupValidationErrors.password?.message}
                             />
                             <TextField
                                 type="password"
@@ -196,6 +212,8 @@ export default function Login() {
                                 label="Password confirm"
                                 inputProps={{ ...registerSignup('passwordConfirm') }}
                                 disabled={isSignupLoading}
+                                error={!!signupValidationErrors.passwordConfirm?.message}
+                                aria-errormessage={signupValidationErrors.passwordConfirm?.message}
                             />
                             <Button
                                 variant="contained"
