@@ -4,4 +4,11 @@ gql`
     mutation signup($userInput: SignupInput!) {
         signup(userInput: $userInput)
     }
+    
+    query login($userInput: LoginInput!) {
+        login(userInput: $userInput) {
+            _id
+            token
+        }
+    }
 `

@@ -1,8 +1,13 @@
 import Head from 'next/head'
 import styles from '../styles/Home.module.scss'
-import { Box, Button, Tab, Tabs, TextField, Typography } from '@mui/material'
-import { useState } from 'react'
+import { Alert, Box, Button, Snackbar, Tab, Tabs, TextField, Typography } from '@mui/material'
+import { useEffect, useRef, useState } from 'react'
 import { SubmitHandler, useForm } from 'react-hook-form'
+import { useLazyQuery, useMutation } from '@apollo/client'
+import { SignupDocument, LoginDocument } from '../src/gql/graphql'
+import { useRouter } from 'next/router'
+import * as yup from 'yup'
+import { yupResolver } from '@hookform/resolvers/yup'
 
 enum Mode {
     Signin,
@@ -13,6 +18,10 @@ interface Signin {
     email: string;
     password: string;
 }
+const signinSchema = yup.object({
+    email: yup.string().required(),
+    password: yup.string().required(),
+}).required()
 
 interface Signup {
     email: string;
@@ -20,15 +29,63 @@ interface Signup {
     password: string;
     passwordConfirm: string;
 }
+const signupSchema = yup.object({
+    email: yup.string().required(),
+    name: yup.string().required(),
+    password: yup.string().required(),
+    passwordConfirm: yup.string().oneOf([yup.ref('password')]).required(),
+}).required()
 
-export default function Home() {
+export default function Login() {
     const [mode, setMode] = useState(Mode.Signin)
+    const router = useRouter()
 
-    const { register: registerSignin, handleSubmit: handleSignin } = useForm<Signin>()
-    const submitSignin: SubmitHandler<Signin> = (data) => console.log(data)
+    const emailInputRef = useRef<HTMLInputElement>(null)
+    useEffect(() => {
+        emailInputRef.current?.focus()
+    }, [])
 
-    const { register: registerSignup, handleSubmit: handleSignup } = useForm<Signup>()
-    const submitSignup: SubmitHandler<Signup> = (data) => console.log(data)
+    const [signin, { loading: isSigninLoading, error: signinError }] = useLazyQuery(LoginDocument)
+    const { register: registerSignin, handleSubmit: handleSignin } = useForm<Signin>({
+        resolver: yupResolver(signinSchema),
+    })
+    const submitSignin: SubmitHandler<Signin> = (data) => {
+        signin({
+            variables: {
+                userInput: {
+                    email: data.email,
+                    password: data.password,
+                },
+            },
+        })
+            .then((response) => {
+                const token = response.data?.login.token
+                if (token) {
+                    localStorage.setItem('jwt-token', `Bearer ${token}`)
+                    return router.push('/')
+                }
+            })
+    }
+
+    const [signup, { loading: isSignupLoading, error: signupError }] = useMutation(SignupDocument)
+    const { register: registerSignup, handleSubmit: handleSignup } = useForm<Signup>({
+        resolver: yupResolver(signupSchema),
+    })
+    const submitSignup: SubmitHandler<Signup> = (data) => {
+        signup({
+            variables: {
+                userInput: {
+                    email: data.email,
+                    name: data.name,
+                    password: data.password,
+                },
+            },
+        })
+            .then(() => {
+                setMode(Mode.Signin)
+            })
+            .catch((error) => console.error(error))
+    }
 
     return (
         <div className={styles.container}>
@@ -70,6 +127,8 @@ export default function Home() {
                                 required
                                 label="Email"
                                 inputProps={{ ...registerSignin('email') }}
+                                inputRef={emailInputRef}
+                                disabled={isSigninLoading}
                             />
                             <TextField
                                 type="password"
@@ -80,8 +139,16 @@ export default function Home() {
                                 required
                                 label="Password"
                                 inputProps={{ ...registerSignin('password') }}
+                                disabled={isSigninLoading}
                             />
-                            <Button variant="contained" type="submit" fullWidth>Sign in</Button>
+                            <Button
+                                variant="contained"
+                                type="submit"
+                                fullWidth
+                                disabled={isSigninLoading}
+                            >
+                                Sign in
+                            </Button>
                         </form>
                     )}
                     {mode === Mode.Signup && (
@@ -96,6 +163,7 @@ export default function Home() {
                                 required
                                 label="Email"
                                 inputProps={{ ...registerSignup('email') }}
+                                disabled={isSignupLoading}
                             />
                             <TextField
                                 variant="outlined"
@@ -105,6 +173,7 @@ export default function Home() {
                                 required
                                 label="Name"
                                 inputProps={{ ...registerSignup('name') }}
+                                disabled={isSignupLoading}
                             />
                             <TextField
                                 type="password"
@@ -115,6 +184,7 @@ export default function Home() {
                                 required
                                 label="Password"
                                 inputProps={{ ...registerSignup('password') }}
+                                disabled={isSignupLoading}
                             />
                             <TextField
                                 type="password"
@@ -125,11 +195,31 @@ export default function Home() {
                                 required
                                 label="Password confirm"
                                 inputProps={{ ...registerSignup('passwordConfirm') }}
+                                disabled={isSignupLoading}
                             />
-                            <Button variant="contained" type="submit" fullWidth>Sign up</Button>
+                            <Button
+                                variant="contained"
+                                type="submit"
+                                fullWidth
+                                disabled={isSignupLoading}
+                            >
+                                Sign up
+                            </Button>
                         </form>
                     )}
                 </Box>
+                <Snackbar
+                    open={!!signinError?.message}
+                    autoHideDuration={6000}
+                >
+                    <Alert variant="outlined" severity="error">{signinError?.message}</Alert>
+                </Snackbar>
+                <Snackbar
+                    open={!!signupError?.message}
+                    autoHideDuration={6000}
+                >
+                    <Alert variant="outlined" severity="error">{signupError?.message}</Alert>
+                </Snackbar>
             </main>
         </div>
     )
