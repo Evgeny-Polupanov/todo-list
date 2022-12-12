@@ -17,4 +17,8 @@ gql`
             name
         }
     }
+    
+    mutation deleteUser {
+        deleteUser
+    }
 `

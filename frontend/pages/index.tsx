@@ -1,34 +1,50 @@
 import Head from 'next/head'
 import styles from '../styles/Home.module.scss'
-import { Box, IconButton, Stack, TextField, Tooltip, Typography, CircularProgress } from '@mui/material'
+import {
+    Box,
+    IconButton,
+    Stack,
+    TextField,
+    Tooltip,
+    Typography,
+    CircularProgress,
+    AppBar,
+    Toolbar, Button, Dialog, DialogTitle, DialogContent, DialogActions,
+} from '@mui/material'
 import DeleteIcon from '@mui/icons-material/Delete'
 import {
     DeleteTodoDocument,
+    DeleteUserDocument,
     GetTodosDocument,
     GetUserForHomeDocument,
     PostTodoDocument,
     TodoInput,
     ToggleTodoDocument,
 } from '../src/gql/graphql'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { ApolloError, useMutation, useQuery } from '@apollo/client'
 import { theme } from '../theme'
 import { SubmitHandler, useForm } from 'react-hook-form'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { useSnackbar } from 'notistack'
+import { useRouter } from 'next/router'
+import client from '../apollo-client'
 
 const schema = yup.object({
     content: yup.string().required(),
 }).required()
 
 const Home = () => {
+    const [isDeleteUserModalOpen, setIsDeleteUserModalOpen] = useState(false)
+
     const todoInputRef = useRef<HTMLInputElement>(null)
     useEffect(() => {
         todoInputRef.current?.focus()
     }, [])
 
     const { enqueueSnackbar } = useSnackbar()
+    const router = useRouter()
 
     const { register, handleSubmit, reset: resetTodoForm } = useForm<TodoInput>({
         resolver: yupResolver(schema),
@@ -43,6 +59,7 @@ const Home = () => {
     const [postTodo, { loading: isPostingTodo }] = useMutation(PostTodoDocument, { onError })
     const [toggleTodo, { loading: isTogglingTodo }] = useMutation(ToggleTodoDocument, { onError })
     const [deleteTodo, { loading: isDeletingTodo }] = useMutation(DeleteTodoDocument, { onError })
+    const [deleteUser, { loading: isDeletingUser }] = useMutation(DeleteUserDocument, { onError })
 
     const postTodoHandler: SubmitHandler<TodoInput> = async (data) => {
         try {
@@ -86,7 +103,24 @@ const Home = () => {
         }
     }
 
-    const isLoading = isEachTodoLoading || isPostingTodo || isTogglingTodo || isDeletingTodo
+    const logout = () => {
+        localStorage.removeItem('jwt-token')
+        enqueueSnackbar('You\'ve successfully logged out', { variant: 'success' })
+        router.push('/login')
+            .catch((error) => console.error(error))
+    }
+
+    const deleteUserHandler = async () => {
+        try {
+            await deleteUser()
+            enqueueSnackbar('You\'ve successfully deleted your account', { variant: 'success' })
+            await router.replace('/login')
+        } catch (error) {
+            console.error(error)
+        }
+    }
+
+    const isLoading = isEachTodoLoading || isPostingTodo || isTogglingTodo || isDeletingTodo || isDeletingUser
 
     return (
         <div className={styles.container}>
@@ -96,6 +130,17 @@ const Home = () => {
                 <link rel="icon" href="/favicon.ico" />
             </Head>
             <main className={styles.main}>
+                <AppBar position="fixed">
+                    <Toolbar sx={{ justifyContent: 'flex-end' }}>
+                        <Button onClick={logout}>Logout</Button>
+                        <Button
+                            color="warning"
+                            onClick={() => setIsDeleteUserModalOpen(true)}
+                        >
+                            Delete account
+                        </Button>
+                    </Toolbar>
+                </AppBar>
                 <Typography variant="h2" gutterBottom>Welcome, {userData?.getUser.name}!</Typography>
                 <Typography variant="subtitle1" gutterBottom>Here's the list of your todos:</Typography>
                 <Box sx={{
@@ -111,7 +156,7 @@ const Home = () => {
                         <Typography variant="subtitle1">No todos so far</Typography>
                     )}
                     <Stack spacing={2}>
-                        {todosData?.getTodos.map((todo) => (
+                        {!isLoading && todosData?.getTodos.map((todo) => (
                             <Box
                                 key={todo._id}
                                 sx={{
@@ -169,8 +214,19 @@ const Home = () => {
                         autoFocus
                         inputProps={{ ...register('content') }}
                         inputRef={todoInputRef}
+                        autoComplete="off"
                     />
                 </form>
+                <Dialog open={isDeleteUserModalOpen}>
+                    <DialogTitle>Deleting the account</DialogTitle>
+                    <DialogContent>
+                        Are you sure you want to delete your account? This action is irreversible!
+                    </DialogContent>
+                    <DialogActions>
+                        <Button onClick={() => setIsDeleteUserModalOpen(false)}>Cancel</Button>
+                        <Button color="warning" onClick={deleteUserHandler}>Delete anyway</Button>
+                    </DialogActions>
+                </Dialog>
             </main>
         </div>
     )
