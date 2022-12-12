@@ -3,7 +3,7 @@ import styles from '../styles/Home.module.scss'
 import { Box, Button, Tab, Tabs, TextField, Typography } from '@mui/material'
 import { useEffect, useRef, useState } from 'react'
 import { SubmitHandler, useForm } from 'react-hook-form'
-import { useLazyQuery, useMutation } from '@apollo/client'
+import { ApolloError, useLazyQuery, useMutation } from '@apollo/client'
 import { SignupDocument, LoginDocument } from '../src/gql/graphql'
 import { useRouter } from 'next/router'
 import * as yup from 'yup'
@@ -47,7 +47,11 @@ export default function Login() {
         emailInputRef.current?.focus()
     }, [])
 
-    const [signin, { loading: isSigninLoading, error: signinError }] = useLazyQuery(LoginDocument)
+    const onError = (error: ApolloError) => {
+        enqueueSnackbar(error.message, { variant: 'error' })
+    }
+
+    const [signin, { loading: isSigninLoading }] = useLazyQuery(LoginDocument, { onError })
     const {
         register: registerSignin,
         handleSubmit: handleSignin,
@@ -73,13 +77,8 @@ export default function Login() {
             })
             .catch((error) => console.error(error))
     }
-    useEffect(() => {
-        if (signinError?.message) {
-            enqueueSnackbar(signinError.message, { variant: 'error' })
-        }
-    }, [signinError])
 
-    const [signup, { loading: isSignupLoading, error: signupError }] = useMutation(SignupDocument)
+    const [signup, { loading: isSignupLoading }] = useMutation(SignupDocument, { onError })
     const {
         register: registerSignup,
         handleSubmit: handleSignup,
@@ -112,10 +111,7 @@ export default function Login() {
                 enqueueSnackbar(error.message, { variant: 'error' })
             })
         }
-        if (signupError?.message) {
-            enqueueSnackbar(signupError.message, { variant: 'error' })
-        }
-    }, [signupValidationErrors, signupError])
+    }, [signupValidationErrors])
 
     return (
         <div className={styles.container}>
