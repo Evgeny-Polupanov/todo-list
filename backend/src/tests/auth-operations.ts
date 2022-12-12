@@ -2,6 +2,8 @@ import { expect } from 'chai'
 import request from 'supertest'
 import { app, httpServer } from '../app'
 import mongoose from 'mongoose'
+import Todo from '../models/todo'
+import { ObjectId } from 'bson'
 
 describe('Auth queries and mutations', () => {
     let supertest = request(app)
@@ -37,7 +39,7 @@ describe('Auth queries and mutations', () => {
                 supertest.post('/graphql')
                     .send({ query: signupMutation })
                     .expect(200)
-                    .end((error, result) => {
+                    .end((error) => {
                         if (error) {
                             throw new Error(error)
                         }
@@ -123,7 +125,7 @@ describe('Auth queries and mutations', () => {
             })
     })
 
-    it('should delete user', (done) => {
+    it('should delete user and therefore his/her respective todos', (done) => {
         const signupMutation = `
             mutation {
                 signup(userInput: {
@@ -150,7 +152,7 @@ describe('Auth queries and mutations', () => {
             }
         `
         let localToken
-        let localUserId
+        let localUserId: string
         supertest.post('/graphql')
             .send({ query: signupMutation })
             .expect(200)
@@ -176,7 +178,14 @@ describe('Auth queries and mutations', () => {
                                     throw new Error(error)
                                 }
                                 expect(JSON.parse(response.text).data.deleteUser).to.be.true
-                                done()
+                                return Todo.find({ _id: new ObjectId(localUserId) })
+                                    .then((todos) => {
+                                        expect(todos).to.be.length(0)
+                                    })
+                                    .catch((error) => console.error(error))
+                                    .finally(() => {
+                                        done()
+                                    })
                             })
                     })
             })

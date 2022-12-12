@@ -18,12 +18,16 @@ const Home = () => {
             </Head>
             <main className={styles.main}>
                 <Typography variant="h2" gutterBottom>Welcome, {userData?.getUser.name}!</Typography>
-                {/*<Typography variant="subtitle1" gutterBottom>Here's the list of your todos:</Typography>*/}
-                {/*<Box>*/}
-                {/*    {todosData?.getTodos.map((todo) => (*/}
-                {/*        <Typography variant="subtitle1">{todo.content}</Typography>*/}
-                {/*    ))}*/}
-                {/*</Box>*/}
+                <Typography variant="subtitle1" gutterBottom>Here's the list of your todos:</Typography>
+                <Box sx={{
+                    width: 500,
+                    height: 600,
+                    marginTop: 4,
+                }}>
+                    {todosData?.getTodos.map((todo) => (
+                        <Typography variant="subtitle1">{todo.content}</Typography>
+                    ))}
+                </Box>
             </main>
         </div>
     )
