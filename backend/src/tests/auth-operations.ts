@@ -151,7 +151,16 @@ describe('Auth queries and mutations', () => {
                 deleteUser
             }
         `
-        let localToken
+        const postTodoMutation = `
+            mutation {
+                postTodo(todoInput: { content: "test" }) {
+                    _id
+                    content
+                    creator
+                }
+            }
+        `
+        let localToken: string
         let localUserId: string
         supertest.post('/graphql')
             .send({ query: signupMutation })
@@ -170,21 +179,31 @@ describe('Auth queries and mutations', () => {
                         localToken = JSON.parse(result.text).data.login.token
                         localUserId = JSON.parse(result.text).data.login._id
                         supertest.post('/graphql')
-                            .auth(localToken, { type: 'bearer' })
-                            .send({ query: deleteUserMutation })
+                            .send({ query: postTodoMutation })
+                            .auth(token, { type: 'bearer' })
                             .expect(200)
                             .end((error, response) => {
-                                if (error) {
-                                    throw new Error(error)
-                                }
-                                expect(JSON.parse(response.text).data.deleteUser).to.be.true
-                                return Todo.find({ _id: new ObjectId(localUserId) })
-                                    .then((todos) => {
-                                        expect(todos).to.be.length(0)
-                                    })
-                                    .catch((error) => console.error(error))
-                                    .finally(() => {
-                                        done()
+                                expect(JSON.parse(response.text).data.postTodo._id).to.exist
+                                expect(JSON.parse(response.text).data.postTodo.content).to.exist
+                                expect(JSON.parse(response.text).data.postTodo.creator).to.be.equal(userId)
+                                supertest.post('/graphql')
+                                    .auth(localToken, { type: 'bearer' })
+                                    .send({ query: deleteUserMutation })
+                                    .expect(200)
+                                    .end((error, response) => {
+                                        if (error) {
+                                            throw new Error(error)
+                                        }
+                                        expect(JSON.parse(response.text).data.deleteUser).to.be.true
+                                        return Todo.find({ creator: new ObjectId(localUserId) })
+                                            .then((todos) => {
+                                                expect(todos).to.exist
+                                                expect(todos).to.be.length(0)
+                                            })
+                                            .catch((error) => console.error(error))
+                                            .finally(() => {
+                                                done()
+                                            })
                                     })
                             })
                     })

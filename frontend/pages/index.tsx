@@ -29,7 +29,6 @@ import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { useSnackbar } from 'notistack'
 import { useRouter } from 'next/router'
-import client from '../apollo-client'
 
 const schema = yup.object({
     content: yup.string().required(),
