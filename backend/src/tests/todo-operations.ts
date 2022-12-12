@@ -2,6 +2,9 @@ import { expect } from 'chai'
 import request from 'supertest'
 import { app, httpServer } from '../app'
 import mongoose from 'mongoose'
+import { config } from 'dotenv'
+
+config()
 
 interface Todo {
     _id: string;
@@ -38,7 +41,7 @@ describe('Todos queries and mutations', () => {
         `
         mongoose.disconnect()
             .then(() => {
-                return mongoose.connect('mongodb://localhost:27017/todos-test')
+                return mongoose.connect(`mongodb://${process.env.MONGO_HOST}:27017/todos-test`)
             })
             .then(() => {
                 supertest.post('/graphql')

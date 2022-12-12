@@ -141,7 +141,7 @@ const Home = () => {
                     </Toolbar>
                 </AppBar>
                 <Typography variant="h2" gutterBottom>Welcome, {userData?.getUser.name}!</Typography>
-                <Typography variant="subtitle1" gutterBottom>Here's the list of your todos:</Typography>
+                <Typography variant="subtitle1" gutterBottom>Here&apos;s the list of your todos:</Typography>
                 <Box sx={{
                     width: 500,
                     height: 500,

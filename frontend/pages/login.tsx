@@ -111,7 +111,7 @@ export default function Login() {
                 enqueueSnackbar(error.message, { variant: 'error' })
             })
         }
-    }, [signupValidationErrors])
+    }, [signupValidationErrors, enqueueSnackbar])
 
     return (
         <div className={styles.container}>
