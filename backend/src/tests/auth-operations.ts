@@ -4,6 +4,9 @@ import { app, httpServer } from '../app'
 import mongoose from 'mongoose'
 import Todo from '../models/todo'
 import { ObjectId } from 'bson'
+import { config } from 'dotenv'
+
+config()
 
 describe('Auth queries and mutations', () => {
     let supertest = request(app)
@@ -33,7 +36,7 @@ describe('Auth queries and mutations', () => {
         `
         mongoose.disconnect()
             .then(() => {
-                return mongoose.connect('mongodb://localhost:27017/todos-test')
+                return mongoose.connect(`mongodb://${process.env.MONGO_HOST}:27017/todos-test`)
             })
             .then(() => {
                 supertest.post('/graphql')

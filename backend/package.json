@@ -8,7 +8,7 @@
     "test": "mocha -r ts-node/register 'src/tests/**/*.ts' --timeout 10000",
     "build": "npx tsc ; cp src/graphql/schema.graphql dist/graphql/schema.graphql",
     "codegen": "graphql-codegen --config src/codegen.ts",
-    "start:prod": "node dist/app.js"
+    "start:prod": "npm test ; npm run build ; node dist/app.js"
   },
   "author": "Evgeniy Polupanov",
   "license": "ISC",
