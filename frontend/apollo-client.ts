@@ -1,4 +1,4 @@
-import { ApolloClient, createHttpLink, InMemoryCache, from } from '@apollo/client'
+import { ApolloClient, createHttpLink, InMemoryCache, from, DefaultOptions } from '@apollo/client'
 import { setContext } from '@apollo/client/link/context'
 import { onError } from '@apollo/client/link/error'
 
@@ -27,9 +27,22 @@ const errorLink = onError(({ graphQLErrors }) => {
     }
 })
 
+const defaultOptions: DefaultOptions = {
+    watchQuery: {
+        fetchPolicy: 'no-cache',
+    },
+    query: {
+        fetchPolicy: 'no-cache',
+    },
+    mutate: {
+        fetchPolicy: 'no-cache',
+    },
+}
+
 const client = new ApolloClient({
     link: from([errorLink, authLink.concat(httpLink)]),
     cache: new InMemoryCache(),
+    defaultOptions,
 })
 
 export default client
