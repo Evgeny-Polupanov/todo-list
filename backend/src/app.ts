@@ -29,7 +29,7 @@ server.start()
 
 export const httpServer = createServer(app)
 
-mongoose.connect('mongodb://localhost:27017/todos')
+mongoose.connect('mongodb://mongodb:27017/todos')
     .then(() => {
         httpServer.listen(8080, () => console.log('The server is running!'))
     })

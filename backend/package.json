@@ -7,7 +7,8 @@
     "start": "nodemon 'src/app.ts' --exec 'ts-node' src/app.ts -e ts,graphql",
     "test": "mocha -r ts-node/register 'src/tests/**/*.ts' --timeout 10000",
     "build": "npx tsc ; cp src/graphql/schema.graphql dist/graphql/schema.graphql",
-    "codegen": "graphql-codegen --config codegen.ts"
+    "codegen": "graphql-codegen --config src/codegen.ts",
+    "start:prod": "node dist/app.js"
   },
   "author": "Evgeniy Polupanov",
   "license": "ISC",
