@@ -41,7 +41,7 @@ const resolvers: Resolvers = {
             const user = await User.findById(context.userId)
             if (!user) {
                 throw new GraphQLError('User not found.', {
-                    extensions: { code: 404 },
+                    extensions: { code: 401 },
                 })
             }
             const todos = await Todo.find({ creator: new ObjectId(context.userId) })
@@ -63,7 +63,7 @@ const resolvers: Resolvers = {
             const user = await User.findById(context.userId)
             if (!user) {
                 throw new GraphQLError('User not found.', {
-                    extensions: { code: 404 },
+                    extensions: { code: 401 },
                 })
             }
             return {
@@ -119,7 +119,7 @@ const resolvers: Resolvers = {
             const user = await User.findById(context.userId)
             if (!user) {
                 throw new GraphQLError('User not found.', {
-                    extensions: { code: 404 },
+                    extensions: { code: 401 },
                 })
             }
             const existingTodo = await Todo.findOne({ creator: new ObjectId(context.userId), content })
@@ -150,7 +150,7 @@ const resolvers: Resolvers = {
             const user = await User.findById(new ObjectId(context.userId))
             if (!user) {
                 throw new GraphQLError('User not found.', {
-                    extensions: { code: 404 },
+                    extensions: { code: 401 },
                 })
             }
             const todoFilter = { _id: new ObjectId(todoId), creator: new ObjectId(context.userId) }
@@ -180,7 +180,7 @@ const resolvers: Resolvers = {
             const user = await User.findById(context.userId)
             if (!user) {
                 throw new GraphQLError('User not found.', {
-                    extensions: { code: 404 },
+                    extensions: { code: 401 },
                 })
             }
             const todoFilter = { _id: new ObjectId(todoId), creator: new ObjectId(context.userId) }
@@ -208,7 +208,7 @@ const resolvers: Resolvers = {
             const user = await User.findById(context.userId)
             if (!user) {
                 throw new GraphQLError('User not found.', {
-                    extensions: { code: 404 },
+                    extensions: { code: 401 },
                 })
             }
             await Todo.deleteMany({ creator: new ObjectId(context.userId) })

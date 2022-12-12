@@ -12,17 +12,18 @@ services:
     ports:
       - '8080:8080'
     volumes:
-      - ./backend/src:/src
-      - /node_modules
+      - ./backend/src:/backend/src
     depends_on:
       - mongodb
     container_name: backend
+    environment:
+      - MONGO_HOST=mongodb
   frontend:
     build: ./frontend
     ports:
       - '3000:3000'
     volumes:
-      - ./frontend/src:/src
+      - ./frontend/src:/frontend/src
     stdin_open: true
     tty: true
     depends_on:

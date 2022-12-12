@@ -5,6 +5,9 @@ import { createServer } from 'http'
 import compression from 'compression'
 import schema from './schema'
 import authContext from './contexts/auth'
+import { config } from 'dotenv'
+
+config()
 
 export const app = express()
 const server = new ApolloServer({
@@ -29,7 +32,7 @@ server.start()
 
 export const httpServer = createServer(app)
 
-mongoose.connect('mongodb://mongodb:27017/todos')
+mongoose.connect(`mongodb://${process.env.MONGO_HOST}:27017/todos`)
     .then(() => {
         httpServer.listen(8080, () => console.log('The server is running!'))
     })
